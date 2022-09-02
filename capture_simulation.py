@@ -190,7 +190,8 @@ class CaptureSimulation():
         axs[0,0].set_ylabel('Semi-major axis (AU)', fontsize=14)
 
         axs[0,1].plot(self.times, self.per_rat())
-        axs[0,1].axhline(self.p/(self.p-1)*(1+Delta_eq(self.m1, self.m2, self.p, -self.disk.fixed_tau_a, self.disk.fixed_tau_e)), c='k', linestyle='-')
+        axs[0,1].axhline(self.p/(self.p-1), c='k', linestyle='-')
+        axs[0,1].axhline(self.p/(self.p-1)*(1+Delta_eq(self.m1, self.m2, self.p, -self.disk.fixed_tau_a, self.disk.fixed_tau_e)), c='r', linestyle='-')
         axs[0,1].set_ylim(min(0.99*self.p/(self.p-1), 0.99*self.per_rat().min()), None)
         axs[0,1].set_ylabel('$P_2/P_1$', fontsize=14)
         axs[0,1].text(0.5, 0.5, f'$\Delta={self.per_rat()[-1]*(self.p-1)/self.p-1:.4f}$', transform=axs[0,1].transAxes, fontsize=16)

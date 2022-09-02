@@ -44,6 +44,7 @@ class ResHam():
         self.Phi_2_tilde = self.Phi_2/eta
         self.psi = np.arctan2(self.v_1, self.u_1) + self.k*lambda_2 - (self.k-1)*lambda_1
         self.H = 3*(self.delta + 1)*self.Psi_tilde - self.Psi_tilde**2 - 2*np.sqrt(2*self.Psi_tilde)*np.cos(self.psi)
+        self.i_to_plot = None
 
     def get_H_contours(self, index, Psi_list, psi_list):
         # equilibrium points of the Hamiltonian
@@ -55,18 +56,21 @@ class ResHam():
         """
         Create a ResHam object from a CaptureSimulation object
         """
-        return cls(sim.p, sim.m1, sim.m2, *sim.orbits[:,:,0].T, *sim.orbits[:,:,1].T, *sim.orbits[:,:,2].T, *sim.orbits[:,:,3].T)
+        ham = cls(sim.p, sim.m1, sim.m2, *sim.orbits[:,:,0].T, *sim.orbits[:,:,1].T, *sim.orbits[:,:,2].T, *sim.orbits[:,:,3].T)
+        ham.i_to_plot = np.where(sim.times > sim.disk_end)[0][0]
+        return ham
     
     def phase_space_plot(self, plot_origin=True):
         fig, ax = plt.subplots(subplot_kw=dict(projection='polar'), figsize=(10,10))
-        i_to_plot = len(self.delta)//10
+        if not self.i_to_plot:
+            self.i_to_plot = 9*len(self.delta)//10
         psi_list = np.linspace(0, 2*np.pi, 500)
-        Psi_max = self.Psi_tilde[-i_to_plot:].max()*2
+        Psi_max = self.Psi_tilde[self.i_to_plot:].max()*2
         Psi_list = np.linspace(0, Psi_max, 500)
         Psi_list, psi_list = np.meshgrid(Psi_list, psi_list)
         values, p_eq = self.get_H_contours(-1, Psi_list, psi_list)
         ax.contour(psi_list, np.sqrt(2*Psi_list), values, levels=30, zorder=0, colors='k', linewidths=0.5)
-        ax.scatter(self.psi[-i_to_plot:], np.sqrt(2*self.Psi_tilde[-i_to_plot:]), s=1, c='k')
+        ax.scatter(self.psi[self.i_to_plot:], np.sqrt(2*self.Psi_tilde[self.i_to_plot:]), s=1, c='k')
         if plot_origin:
             ax.scatter(0, 0, s=30, c='b')
         p_eq = p_eq[np.isreal(p_eq)].real
