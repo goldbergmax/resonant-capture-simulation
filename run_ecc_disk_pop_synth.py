@@ -25,7 +25,7 @@ p, N, e0 = args.p, args.N, args.e0
 q = 1
 m1, m2 = 10/332900, 10/332900
 a_init = 0.1
-Delta_init = 0.02
+Delta_init = 0.1
 
 fixed_tau_e = -3e2
 q_disk = 0

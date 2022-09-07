@@ -24,12 +24,12 @@ q = 1
 m1, m2 = 10/332900, 10/332900
 
 a_init = 0.1
-Delta_init = 0.02
+Delta_init = 0.1
 fixed_tau_a = -3e5
 q_disk = 0
 
-disk_end = 1e4
-t_end = 2e4
+disk_end = 3e4
+t_end = 4e4
 t_start_removal = 0.75 if args.adiabatic else 1
 adiabatic_str = 'adiabatic' if args.adiabatic else 'nonadiabatic'
 
