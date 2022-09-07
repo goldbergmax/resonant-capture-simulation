@@ -35,8 +35,10 @@ t_start_removal = 0.75 if args.adiabatic else 1
 adiabatic_str = 'adiabatic' if args.adiabatic else 'nonadiabatic'
 
 Ks = np.logspace(np.log10(1e2), np.log10(1e5), N)
-
-path = Path(f'results/eccentric_disk')
+if e0 > 0:
+    path = Path(f'results/eccentric_disk')
+else:
+    path = Path(f'results/regular_disk')
 os.makedirs(path, exist_ok=True)
 
 pool = Pool(48)
