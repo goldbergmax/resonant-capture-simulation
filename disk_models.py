@@ -1,5 +1,6 @@
 from __future__ import annotations
 import numpy as np
+import pandas as pd
 import rebound
 
 class EccentricDisk():
@@ -242,6 +243,56 @@ class StochasticDisk():
 
     def describe(self) -> dict:
         return {'fixed_tau_a': self.fixed_tau_a, 'fixed_tau_e': self.fixed_tau_e, 'kappa': self.kappa}
+
+class PlanetesimalDisk():
+    """Class to represent a disk of planetesimals"""
+    def __init__(self, N_pts, disk_mass, loc='outside', Sigma_slope=-2.):
+        """
+        Parameters
+        --------
+        N_pts : int
+            Number of planetesimals in the disk
+        disk_mass : float
+            Mass of the disk in sim units
+        loc : str
+            Location of the planetesimals, either 'inside', 'outside', or 'around'
+        Sigma_slope : float
+            Power law slope of the surface density profile
+        """
+        self.N_pts = N_pts
+        self.disk_mass = disk_mass
+        self.loc = loc
+        self.planetesimals_added = False
+        self.Sigma_slope = Sigma_slope
+    def add_planetesimals(self, sim):
+        if self.loc == 'around':
+            r_in = sim.particles[1].a*(1/3)**(2/3)
+            r_out = sim.particles[2].a*(3/1)**(2/3)
+        elif self.loc == 'outside':
+            r_in = sim.particles[2].a + 3*sim.particles[2].rhill
+            r_out = 2*r_in
+        elif self.loc == 'inside':
+            r_out = sim.particles[1].a - 3*sim.particles[1].rhill
+            r_in = 0.5*r_out
+        else:
+            raise ValueError('loc must be "around", "outside", or "inside"')
+        for i in range(self.N_pts):
+            sim.add(m=self.disk_mass/self.N_pts, a=self.draw_radius(r_in, r_out), l='uniform')
+        self.planetesimals_added = True
+
+    def draw_radius(self, r_in, r_out):
+        """Draw a radius from a power-law distribution"""
+        if self.Sigma_slope == -2:
+            return r_in*(r_out/r_in)**np.random.rand()
+        else:
+            return (r_in**(self.Sigma_slope+2) + (r_out**(self.Sigma_slope+2) - r_in**(self.Sigma_slope+2))*np.random.rand())**(1/(self.Sigma_slope+2))
+
+    def save_orbits(self, sim):
+        """Save the planetesimal orbits"""
+        self.orbits = pd.DataFrame([[p.a, p.e, p.omega, p.f] for p in sim.particles[sim.N_active:]], columns=['a', 'e', 'omega', 'f'])
+
+    def describe(self):
+        return {'N_pts': self.N_pts, 'pl_disk_mass': self.disk_mass, 'loc': self.loc, 'Sigma_slope': self.Sigma_slope}
 
 def analytical_path(times, e0, pomega0, e_disk, pomega_disk, A, tau_e):
     initial_e_diff = np.sqrt((e0*np.cos(pomega0) - e_disk*np.cos(pomega_disk))**2 + (e0*np.sin(pomega0) - e_disk*np.sin(pomega_disk))**2)

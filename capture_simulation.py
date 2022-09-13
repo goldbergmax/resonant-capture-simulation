@@ -1,4 +1,5 @@
 from __future__ import annotations
+from cmath import isfinite
 import warnings
 import numpy as np
 import matplotlib.pyplot as plt
@@ -9,7 +10,7 @@ from hammy import Delta_eq, get_f_g
 
 class CaptureSimulation():
     def __init__(self, p: int, q: int, m1: float, m2: float, a1_init: float, 
-                 Delta_init: float, disk, perturber=False):
+                 Delta_init: float, disk, pl_disk=None, perturber=False):
         """
         Initialize a simulation of MMR capture with a given disk
 
@@ -24,6 +25,8 @@ class CaptureSimulation():
         Delta_init : float
             Initial spacing from resonance
         disk : EccentricDisk
+        pl_disk : PlanetesimalDisk
+            If not None, add planetesimals to the simulation
         perturber : bool
             If True, add an outer perturbing giant planet
         """
@@ -33,21 +36,32 @@ class CaptureSimulation():
         self.a1_init, self.Delta_init = a1_init, Delta_init
         self.sim = rebound.Simulation()
         self.sim.units = ('yr', 'Msun', 'AU')
-        self.sim.add(m=1)
-        self.sim.add(m=m1, a=a1_init, e=0.01, pomega=0.)
+        self.sim.add(m=1, r=0.00465)
+        self.sim.add(m=m1, a=a1_init, e=0.01, pomega=0., r=1e-4)
         a2_init = ((Delta_init+1)*self.p/(self.p-self.q))**(2/3)*a1_init
-        self.sim.add(m=m2, a=a2_init, e=0.01, pomega=0.)
+        self.sim.add(m=m2, a=a2_init, e=0.01, pomega=0., r=1e-4)
         if perturber:
             self.sim.add(m=1e-3, a=0.8, e=0.3, pomega='uniform')
         self.ps = self.sim.particles
-        self.sim.integrator = 'whfast'
+        self.sim.integrator = 'mercurius'
         self.sim.dt = self.ps[1].P/20
+        self.sim.move_to_com()
+        self.sim.N_active = 3
+        self.sim.configure_box(10.)
+        self.sim.boundary = 'open'
+        if pl_disk is not None:
+            # configure integrator for planetesimal disk if present
+            self.sim.collision = 'direct'
+            self.sim.collision_resolve = 'merge'
+            self.sim.testparticle_type = 1
+            self.sim.ri_ias15.min_dt = 1e-5
         rebx = reboundx.Extras(self.sim)
-        mof = rebx.load_operator("modify_orbits_direct")
+        mof = rebx.load_force("modify_orbits_forces")
         sto = rebx.load_force("stochastic_forces")
-        rebx.add_operator(mof)
+        rebx.add_force(mof)
         rebx.add_force(sto)
         self.disk = disk
+        self.pl_disk = pl_disk
     
     def run_sim(self, disk_end: float, t_end: float, write_dir: str=None, 
                 tidal_tau_e: float=np.inf, e_foldings: int=5, t_start_removal=0.75) -> None:
@@ -79,6 +93,9 @@ class CaptureSimulation():
         Nout = len(self.times)
         self.orbits = np.zeros((Nout, 2, 4))
         for i,t in enumerate(self.times):
+            # stop simulation if a planet is missing (ejected or merged)
+            if self.sim.N_active < 3:
+                break
             self.orbits[i,0] = self.ps[1].a, self.ps[1].e, self.ps[1].pomega, self.ps[1].l
             self.orbits[i,1] = self.ps[2].a, self.ps[2].e, self.ps[2].pomega, self.ps[2].l
             scaling_factor = get_scaling_factor(t, disk_end, e_foldings=e_foldings, t_start_removal=t_start_removal)
@@ -87,7 +104,11 @@ class CaptureSimulation():
             if t >= disk_end:
                 for par in self.ps[1:3]:
                     par.params['tau_e'] = tidal_tau_e
+                if self.pl_disk is not None and not self.pl_disk.planetesimals_added:
+                    self.pl_disk.add_planetesimals(self.sim)
             self.sim.integrate(t)
+        if self.pl_disk is not None:
+            self.pl_disk.save_orbits(self.sim)
         if write_dir:
             path = Path(write_dir)
             with open(path, 'wb') as f:
@@ -179,6 +200,8 @@ class CaptureSimulation():
         ret_dict = {'p':self.p, 'q':self.q, 'm1':self.m1, 'm2':self.m2, 
                     'a1_init':self.a1_init, 'Delta_init':self.Delta_init, 
                     'disk_end':self.disk_end, 't_end':self.t_end, 't_start_removal':self.t_start_removal}
+        if self.pl_disk is not None:
+            ret_dict |= self.pl_disk.describe()
         ret_dict |= self.disk.describe()
         ret_dict |= self.get_basic_results()
         return ret_dict
@@ -191,7 +214,8 @@ class CaptureSimulation():
 
         axs[0,1].plot(self.times, self.per_rat())
         axs[0,1].axhline(self.p/(self.p-1), c='k', linestyle='-')
-        axs[0,1].axhline(self.p/(self.p-1)*(1+Delta_eq(self.m1, self.m2, self.p, -self.disk.fixed_tau_a, self.disk.fixed_tau_e)), c='r', linestyle='-')
+        if np.isfinite([self.disk.fixed_tau_e, self.disk.fixed_tau_a]).all():
+            axs[0,1].axhline(self.p/(self.p-1)*(1+Delta_eq(self.m1, self.m2, self.p, -self.disk.fixed_tau_a, self.disk.fixed_tau_e)), c='r', linestyle='-')
         axs[0,1].set_ylim(min(0.99*self.p/(self.p-1), 0.99*self.per_rat().min()), None)
         axs[0,1].set_ylabel('$P_2/P_1$', fontsize=14)
         axs[0,1].text(0.5, 0.5, f'$\Delta={self.per_rat()[-1]*(self.p-1)/self.p-1:.4f}$', transform=axs[0,1].transAxes, fontsize=16)
