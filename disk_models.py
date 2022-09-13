@@ -182,6 +182,35 @@ class BasicEccentricDisk():
     def describe(self) -> dict:
         return {'e0': self.e0, 'disk_q': self.q, 'pomega': self.pomega, 'fixed_tau_a': self.fixed_tau_a, 'fixed_tau_e': self.fixed_tau_e}
 
+class BasicCircularDisk():
+    """Class to compute planet-disk interactions in a highly simplified disk"""
+    def __init__(self, fixed_tau_e: float, fixed_tau_a: float):
+        """
+        Parameters
+        --------
+        fixed_tau_e, fixed_tau_a : float
+            Hard coded eccentricty and semi-major axis timescales
+        """
+        self.fixed_tau_a, self.fixed_tau_e = fixed_tau_a, fixed_tau_e
+
+    def tau_a(self, p: rebound.Particle):
+        return self.fixed_tau_a if p.index == 2 else np.inf
+
+    def tau_e(self, p: rebound.Particle):
+        return self.fixed_tau_e
+
+    def apply_forces(self, p: rebound.Particle, scaling_factor: float) -> None:
+        """
+        Apply the disk forces to a particle
+        """
+        p.params['tau_a'] = self.tau_a(p)
+        p.params['tau_e'] = self.tau_e(p)
+        p.params['tau_a'] *= scaling_factor
+        p.params['tau_e'] *= scaling_factor
+
+    def describe(self) -> dict:
+        return {'fixed_tau_a': self.fixed_tau_a, 'fixed_tau_e': self.fixed_tau_e}
+
 class StochasticDisk():
     """Class to compute planet-disk interactions in a disk with stochastic forces"""
     def __init__(self, fixed_tau_a: float, fixed_tau_e: float, kappa: float) -> None:
