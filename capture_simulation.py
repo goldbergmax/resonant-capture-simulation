@@ -88,6 +88,7 @@ class CaptureSimulation():
         self.t_end = t_end
         self.t_start_removal = t_start_removal
         assert disk_end <= t_end, "Disk removal time must be less than simulation end time"
+        self.tidal_tau_e = tidal_tau_e
         self.generate_warnings(disk_end, t_start_removal)
         self.times = np.arange(0.,t_end,1)
         Nout = len(self.times)
@@ -199,7 +200,7 @@ class CaptureSimulation():
         """Get a row of initial conditions and results for the dataframe"""
         ret_dict = {'p':self.p, 'q':self.q, 'm1':self.m1, 'm2':self.m2, 
                     'a1_init':self.a1_init, 'Delta_init':self.Delta_init, 
-                    'disk_end':self.disk_end, 't_end':self.t_end, 't_start_removal':self.t_start_removal}
+                    'disk_end':self.disk_end, 't_end':self.t_end, 't_start_removal':self.t_start_removal, 'tidal_tau_e':self.tidal_tau_e}
         if self.pl_disk is not None:
             ret_dict |= self.pl_disk.describe()
         ret_dict |= self.disk.describe()
