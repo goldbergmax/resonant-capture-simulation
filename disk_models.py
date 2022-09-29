@@ -277,7 +277,8 @@ class PlanetesimalDisk():
         else:
             raise ValueError('loc must be "around", "outside", or "inside"')
         for i in range(self.N_pts):
-            sim.add(m=self.disk_mass/self.N_pts, a=self.draw_radius(r_in, r_out), l='uniform')
+            sim.add(m=self.disk_mass/self.N_pts, a=self.draw_radius(r_in, r_out), inc=np.random.rand()*np.radians(1), 
+                    e=np.random.rand()*1e-2, Omega='uniform', l='uniform')
         self.planetesimals_added = True
 
     def draw_radius(self, r_in, r_out):
@@ -289,7 +290,7 @@ class PlanetesimalDisk():
 
     def save_orbits(self, sim):
         """Save the planetesimal orbits"""
-        self.orbits = pd.DataFrame([[p.a, p.e, p.omega, p.f] for p in sim.particles[sim.N_active:]], columns=['a', 'e', 'omega', 'f'])
+        self.orbits = pd.DataFrame([[p.a, p.e, p.inc, p.Omega, p.omega, p.f] for p in sim.particles[sim.N_active:]], columns=['a', 'e', 'i', 'Omega', 'omega', 'f'])
 
     def describe(self):
         return {'N_pts': self.N_pts, 'pl_disk_mass': self.disk_mass, 'loc': self.loc, 'Sigma_slope': self.Sigma_slope}
