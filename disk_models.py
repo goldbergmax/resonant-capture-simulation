@@ -246,7 +246,7 @@ class StochasticDisk():
 
 class PlanetesimalDisk():
     """Class to represent a disk of planetesimals"""
-    def __init__(self, N_pts, disk_mass, loc='outside', Sigma_slope=-2.):
+    def __init__(self, N_pts, disk_mass, loc='outside', Sigma_slope=-2., dyn_T=0.01):
         """
         Parameters
         --------
@@ -264,6 +264,7 @@ class PlanetesimalDisk():
         self.loc = loc
         self.planetesimals_added = False
         self.Sigma_slope = Sigma_slope
+        self.dyn_T = dyn_T
     def add_planetesimals(self, sim):
         if self.loc == 'around':
             r_in = sim.particles[1].a*(1/3)**(2/3)
@@ -277,8 +278,8 @@ class PlanetesimalDisk():
         else:
             raise ValueError('loc must be "around", "outside", or "inside"')
         for i in range(self.N_pts):
-            sim.add(m=self.disk_mass/self.N_pts, a=self.draw_radius(r_in, r_out), inc=np.random.rand()*np.radians(1), 
-                    e=np.random.rand()*1e-2, Omega='uniform', l='uniform')
+            sim.add(m=self.disk_mass/self.N_pts, a=self.draw_radius(r_in, r_out), inc=np.random.rand()*self.dyn_T, 
+                    e=np.random.rand()*self.dyn_T, Omega='uniform', l='uniform', omega='uniform')
         self.planetesimals_added = True
 
     def draw_radius(self, r_in, r_out):
