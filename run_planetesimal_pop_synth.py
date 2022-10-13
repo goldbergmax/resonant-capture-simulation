@@ -15,6 +15,7 @@ def change_param(i):
     return sim.get_results_row()
 
 parser = argparse.ArgumentParser()
+parser.add_argument('path', type=str, help='Path to write results to')
 parser.add_argument('--p', type=int, default=3)
 parser.add_argument('--K', type=float, default=300)
 parser.add_argument('--N', type=int, default=100)
@@ -52,7 +53,7 @@ adiabatic_str = 'adiabatic' if args.adiabatic else 'nonadiabatic'
 
 disk_masses = np.logspace(-1, 1, N)/332900
 
-path = Path(f'results/planetesimals/{p}_{q}_{loc}_{dyn_T}')
+path = Path(args.path) / Path(f'results/planetesimals/{p}_{q}_{loc}_{dyn_T}')
 os.makedirs(path, exist_ok=True)
 
 pool = Pool(50)

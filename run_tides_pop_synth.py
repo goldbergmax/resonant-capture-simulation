@@ -15,6 +15,7 @@ def change_param(params):
     return sim.get_results_row()
 
 parser = argparse.ArgumentParser()
+parser.add_argument('path', type=str, help='Path to write results to')
 parser.add_argument('--p', type=int, default=3)
 parser.add_argument('--N', type=int, default=100)
 args = parser.parse_args()
@@ -29,7 +30,7 @@ t_end = 1e6
 tidal_tau_es = [-1e4, -1e5, -1e6, -1e7]
 Delta_inits = np.linspace(-0.05, 0.05, N//len(tidal_tau_es))
 
-path = Path(f'results/tides/{p}_{q}')
+path = Path(args.path) / Path(f'results/tides/{p}_{q}')
 os.makedirs(path, exist_ok=True)
 
 pool = Pool(50)

@@ -15,6 +15,7 @@ def change_param(i):
     return sim.get_results_row()
 
 parser = argparse.ArgumentParser()
+parser.add_argument('path', type=str, help='Path to write results to')
 parser.add_argument('--p', type=int, default=3)
 parser.add_argument('--N', type=int, default=96)
 parser.add_argument('--adiabatic', action=argparse.BooleanOptionalAction, default=True)
@@ -36,9 +37,9 @@ adiabatic_str = 'adiabatic' if args.adiabatic else 'nonadiabatic'
 
 Ks = np.logspace(np.log10(1e2), np.log10(1e5), N)
 if e0 > 0:
-    path = Path(f'results/eccentric_disk')
+    path = Path(args.path) / Path(f'results/eccentric_disk')
 else:
-    path = Path(f'results/regular_disk')
+    path = Path(args.path) / Path(f'results/regular_disk')
 os.makedirs(path, exist_ok=True)
 
 pool = Pool(48)

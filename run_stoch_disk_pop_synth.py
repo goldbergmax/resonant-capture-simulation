@@ -13,6 +13,7 @@ def change_param(i):
     return sim.get_results_row()
 
 parser = argparse.ArgumentParser()
+parser.add_argument('path', type=str, help='Path to write results to')
 parser.add_argument('--p', type=int, default=3)
 parser.add_argument('--K', type=float, default=300)
 parser.add_argument('--N', type=int, default=100)
@@ -38,7 +39,7 @@ adiabatic_str = 'adiabatic' if args.adiabatic else 'nonadiabatic'
 
 kappas = np.logspace(-7, -5, N)
 
-path = Path(f'results/stoch_disk/{p}_{q}_{adiabatic_str}_{K}{dirname}')
+path = Path(args.path) / Path(f'results/stoch_disk/{p}_{q}_{adiabatic_str}_{K}{dirname}')
 os.makedirs(path, exist_ok=True)
 
 pool = Pool(50)
