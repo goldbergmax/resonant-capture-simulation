@@ -37,9 +37,9 @@ class CaptureSimulation():
         self.sim = rebound.Simulation()
         self.sim.units = ('yr', 'Msun', 'AU')
         self.sim.add(m=1, r=0.00465)
-        self.sim.add(m=m1, a=a1_init, e=0.01, pomega=0., r=1e-4)
+        self.sim.add(m=m1, a=a1_init, e=0.01, pomega='uniform', r=1e-4)
         a2_init = ((Delta_init+1)*self.p/(self.p-self.q))**(2/3)*a1_init
-        self.sim.add(m=m2, a=a2_init, e=0.01, pomega=0., r=1e-4)
+        self.sim.add(m=m2, a=a2_init, e=0.01, pomega='uniform', r=1e-4)
         if perturber:
             self.sim.add(m=1e-3, a=0.8, e=0.3, pomega='uniform')
         self.ps = self.sim.particles
