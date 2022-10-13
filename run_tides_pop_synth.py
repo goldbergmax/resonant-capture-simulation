@@ -4,12 +4,12 @@ from itertools import product
 import numpy as np
 import pandas as pd
 from multiprocessing import Pool
-from disk_models import BasicEccentricDisk
+from disk_models import BasicCircularDisk
 from capture_simulation import CaptureSimulation
 
 def change_param(params):
     Delta_init, tidal_tau_e = params
-    disk = BasicEccentricDisk(e0=0., q=0, fixed_tau_a=-np.inf, fixed_tau_e=-np.inf)
+    disk = BasicCircularDisk(fixed_tau_a=-np.inf, fixed_tau_e=-np.inf)
     sim = CaptureSimulation(p, q, m1, m2, a_init, Delta_init, disk)
     sim.run_sim(0, t_end, tidal_tau_e=tidal_tau_e, write_dir=path / f'{Delta_init}_{tidal_tau_e}.pkl')
     return sim.get_results_row()
@@ -24,9 +24,9 @@ N = args.N
 q = 1
 m1, m2 = 10/332900, 10/332900
 
-a_init = 0.1
-t_end = 1e5
-tidal_tau_es = [-1e3, -1e4, -1e5]
+a_init = 1
+t_end = 1e6
+tidal_tau_es = [-1e4, -1e5, -1e6, -1e7]
 Delta_inits = np.linspace(-0.05, 0.05, N//len(tidal_tau_es))
 
 path = Path(f'results/tides/{p}_{q}')
