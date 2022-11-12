@@ -1,5 +1,4 @@
+data/
 figs/
 results/
 __pycache__/
-*.hdf5
-*.dat
