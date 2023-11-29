@@ -7,4 +7,4 @@ and [Jontof-Hutter et al. (2021)](https://ui.adsabs.harvard.edu/abs/2021AJ....16
 Additionally, the [cumulative KOI table](https://exoplanetarchive.ipac.caltech.edu/cgi-bin/TblView/nph-tblView?app=ExoTbls&config=cumulative) in .csv format from the Exoplanet Archive is required.
 These files should be placed in a top-level directory named `data`.
 
-If you use this code, please cite Goldberg & Batygin (in prep).
+If you use this code, please cite [Goldberg & Batygin (2023)](https://ui.adsabs.harvard.edu/abs/2023ApJ...948...12G/abstract).
